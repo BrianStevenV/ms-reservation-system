@@ -1,5 +1,6 @@
 package com.makaia.Hotel.services;
 
+import com.makaia.Hotel.Exceptions.HandlerResponseException;
 import com.makaia.Hotel.modules.Customer;
 import com.makaia.Hotel.modules.Reservation;
 import com.makaia.Hotel.modules.Room;
@@ -36,12 +37,39 @@ public class ReservationService {
     public List<Reservation> research(){
         List<Reservation> reservationsAvailables = (List<Reservation>) reservationRepository.findAll();
         if(reservationsAvailables.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "There are Rooms available now.");
+            throw new HandlerResponseException(HttpStatus.INTERNAL_SERVER_ERROR,"There aren't Rooms available now.");
         }
         return reservationsAvailables;
     }
 
-    public List<Room> roomsByType( LocalDate date, String roomType){
+//    public List<Room> roomsByType( LocalDate date, String roomType){
+//        List<Reservation> reservations = research();
+//        List<Room> roomList = new ArrayList<>();
+//
+//        if(roomType.equals("basic")){
+//            List<Reservation> reservationBasic = reservations.stream()
+//                    .filter(reservation -> reservation.getRoom() != null && reservation.getRoom().getRoomType().equals("basic") && reservation.getReserveDate().equals(date))
+//                    .collect(Collectors.toList());
+//            reservationBasic.stream().forEach(reservation -> {
+//                Optional<Room> auxRoom = roomRepository.findById(reservation.getRoom().getNumberRoom());
+//                roomList.add(auxRoom.get());
+//
+//            });
+//        }else if (roomType.equals("premium")) {
+//            List<Reservation> reservationBasic = reservations.stream()
+//                    .filter(reservation -> reservation.getRoom() != null && reservation.getRoom().getRoomType().equals("premium") && reservation.getReserveDate().equals(date))
+//                    .collect(Collectors.toList());
+//            reservationBasic.stream().forEach(reservation -> {
+//                Optional<Room> auxRoom = roomRepository.findById(reservation.getRoom().getNumberRoom());
+//                roomList.add(auxRoom.get());
+//
+//            });
+//
+//        }
+//        return roomList;
+//    }
+
+    public List<Room> roomsByType(LocalDate date, String roomType) {
         List<Reservation> reservations = research();
         List<Room> roomList = new ArrayList<>();
 
@@ -49,24 +77,20 @@ public class ReservationService {
             List<Reservation> reservationBasic = reservations.stream()
                     .filter(reservation -> reservation.getRoom() != null && reservation.getRoom().getRoomType().equals("basic") && reservation.getReserveDate().equals(date))
                     .collect(Collectors.toList());
-            reservationBasic.stream().forEach(reservation -> {
-                Optional<Room> auxRoom = roomRepository.findById(reservation.getRoom().getNumberRoom());
-                roomList.add(auxRoom.get());
-
+            reservationBasic.forEach(reservation -> {
+                roomList.add(reservation.getRoom());
             });
-        }else if (roomType.equals("premium")) {
-            List<Reservation> reservationBasic = reservations.stream()
+        } else if (roomType.equals("premium")) {
+            List<Reservation> reservationPremium = reservations.stream()
                     .filter(reservation -> reservation.getRoom() != null && reservation.getRoom().getRoomType().equals("premium") && reservation.getReserveDate().equals(date))
                     .collect(Collectors.toList());
-            reservationBasic.stream().forEach(reservation -> {
-                Optional<Room> auxRoom = roomRepository.findById(reservation.getRoom().getNumberRoom());
-                roomList.add(auxRoom.get());
-
+            reservationPremium.forEach(reservation -> {
+                roomList.add(reservation.getRoom());
             });
-
         }
         return roomList;
     }
+
 
 
     public List<Room> roomsByDate(LocalDate date){
@@ -83,26 +107,6 @@ public class ReservationService {
         return roomList;
     }
 
-/*    public ResponseEntity<Reservation> create(Reservation reservation, int idCustomer){
-        Optional<Customer> customer = this.customerService.researchById(idCustomer);
-        List<Customer> customerList = this.customerService.researchAll();
-        if(reservation.getReserveCode() != null ){
-            Optional<Reservation> tempReservation = this.reservationRepository.findById(reservation.getReserveCode());
-            if(tempReservation.isPresent()){
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Room is rejected in Database.");
-            }
-        }
-
-        LocalDate nowDate = LocalDate.now();
-        if(reservation.getReserveDate().isAfter(nowDate) &&
-                reservation.getReserveDate() != null &&
-                customerList.contains(customer) &&
-                reservation.getRoom() != null){
-            return new ResponseEntity<>(this.reservationRepository.save(reservation), HttpStatus.CREATED);
-        }   else{
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "DNI, FirstName and LastName are required.");
-        }
-    }*/
 
     public Reservation create(Reservation reservation, int idCustomer){
         Optional<Customer> customer = this.customerRepository.findById(idCustomer);
@@ -110,7 +114,7 @@ public class ReservationService {
         if(reservation.getReserveCode() != null ){
             Optional<Reservation> tempReservation = this.reservationRepository.findById(reservation.getReserveCode());
             if(tempReservation.isPresent()){
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Room is rejected in Database.");
+                throw new HandlerResponseException(HttpStatus.INTERNAL_SERVER_ERROR,"Reservation isn't available.");
             }
         }
 
@@ -121,7 +125,7 @@ public class ReservationService {
             this.reservationRepository.save(reservation);
             return reservation;
         }   else{
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "DNI, FirstName and LastName are required.");
+            throw new HandlerResponseException(HttpStatus.INTERNAL_SERVER_ERROR,"Reservation isn't available for " + nowDate);
         }
     }
 }

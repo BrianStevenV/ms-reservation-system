@@ -1,5 +1,6 @@
 package com.makaia.Hotel.services;
 
+import com.makaia.Hotel.Exceptions.HandlerResponseException;
 import com.makaia.Hotel.modules.Customer;
 import com.makaia.Hotel.modules.Room;
 import com.makaia.Hotel.repositories.CustomerRepository;
@@ -20,28 +21,12 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
-/*    public ResponseEntity<Customer> create(Customer customer){
-        //Exceptions
-        if(customer.getDni() != null ){
-            Optional<Customer> tempCustomer = this.customerRepository.findById(customer.getDni());
-            if(tempCustomer.isPresent()){
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "DNI is rejected in Database.");
-            }
-        }
-
-        if(customer.getFirstName() != null && customer.getLastName() != null && customer.getDni() instanceof Integer){
-            return new ResponseEntity<>(this.customerRepository.save(customer), HttpStatus.CREATED);
-        }   else{
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "DNI, FirstName and LastName are required.");
-        }
-    }*/
-
     public Customer create(Customer customer){
         //Exceptions
         if(customer.getDni() != null ){
             Optional<Customer> tempCustomer = this.customerRepository.findById(customer.getDni());
             if(tempCustomer.isPresent()){
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "DNI is rejected in Database.");
+                throw new HandlerResponseException(HttpStatus.INTERNAL_SERVER_ERROR,"DNI is rejected in database.");
             }
         }
 
@@ -49,7 +34,7 @@ public class CustomerService {
             this.customerRepository.save(customer);
             return customer;
         }   else{
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "DNI, FirstName and LastName are required.");
+            throw new HandlerResponseException(HttpStatus.INTERNAL_SERVER_ERROR,"DNI, First Name and Last Name are required");
         }
     }
 
@@ -57,7 +42,7 @@ public class CustomerService {
         Optional<Customer> customer = customerRepository.findById(id);
         if(customer.isEmpty()){
 
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "There are Rooms available now.");
+            throw new HandlerResponseException(HttpStatus.INTERNAL_SERVER_ERROR,"Customer doesn't find in our database.");
         }
         return customer;
     }
@@ -65,7 +50,7 @@ public class CustomerService {
         List<Customer> customerList = (List<Customer>) customerRepository.findAll();
         if(customerList.isEmpty()){
 
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "There are Rooms available now.");
+            throw new HandlerResponseException(HttpStatus.INTERNAL_SERVER_ERROR,"Database is empty.");
         }
         return customerList;
     }

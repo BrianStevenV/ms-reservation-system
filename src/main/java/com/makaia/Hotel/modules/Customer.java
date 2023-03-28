@@ -41,6 +41,10 @@ public class Customer implements Serializable {
         return dni;
     }
 
+    public void setDni(Integer dni) {
+        this.dni = dni;
+    }
+
     public String getFirstName() {
         return firstName;
     }
